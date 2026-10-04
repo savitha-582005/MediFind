@@ -1,0 +1,19 @@
+{% for r in results %}
+  <div class="result-card">
+    <div class="result-header">
+      <h3>{{ r.medicine_name }} <small>({{ r.brand }})</small></h3>
+      <div class="price-tag">₹{{ r.price }}</div>
+    </div>
+    <div class="pharmacy-info">
+      <p><strong>🏥 {{ r.pharmacy_name }}</strong></p>
+      <p>📍 {{ r.pharmacy_address }}</p>
+    </div>
+    <div class="result-details">
+      <span class="detail-item">📦 Stock: {{ r.stock }}</span>
+      <span class="detail-item">🚶 Distance: {% if r.distance_km is not none %}{{ r.distance_km }} km{% else %}Unknown{% endif %}</span>
+    </div>
+    <a class="maps-button" target="_blank" href="https://www.google.com/maps/search/?api=1&query={{ r.pharmacy_latitude }},{{ r.pharmacy_longitude }}">
+      <span class="icon">🗺️</span> View on Maps
+    </a>
+  </div>
+{% endfor %}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>User Register - MediFind</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/medifind.css') }}"></head>
+<body>
+  {% include '_header.html' %}
+  <main class="auth-shell"><section class="auth-panel">
+    <p class="page-kicker">Create an account</p><h1>Join MediFind</h1>
+    <p>Search nearby pharmacy inventory, or register as an owner to manage a pharmacy listing.</p>
+    <form class="auth-form" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Full name<input name="name" autocomplete="name" required></label>
+      <label>Email address<input name="email" type="email" autocomplete="email" required></label>
+      <label>Password<input name="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" minlength="8" required></label>
+      <div>
+        <span class="field-label">Account type</span>
+        <div class="role-choice">
+          <label><input type="radio" name="role" value="user" checked> User</label>
+          <label><input type="radio" name="role" value="owner"> Pharmacy owner</label>
+        </div>
+      </div>
+      <button type="submit">Create account</button>
+    </form>
+    <div class="auth-links"><a href="{{ url_for('user_login') }}">Already registered? Sign in</a></div>
+  </section></main>
+</body></html>

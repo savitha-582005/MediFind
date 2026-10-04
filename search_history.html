@@ -1,0 +1,39 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Search History - MediFind</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/medifind.css') }}"></head>
+<body>
+  {% include '_header.html' %}
+  <main class="page-wide">
+    <p class="page-kicker">Your private activity</p><h1>Search history</h1>
+    <p class="muted">Only your latest 100 searches are saved. Browser searches save no precise coordinates; manual searches save the approximate area label. Delete entries whenever you like.</p>
+    <form method="get" action="{{ url_for('user_search_history') }}" class="history-filter">
+      <label for="history-query">Filter by medicine</label>
+      <input id="history-query" name="q" value="{{ query_filter }}" placeholder="Medicine name">
+      <button type="submit">Filter</button>
+    </form>
+    {% if entries %}
+      <form method="post" action="{{ url_for('clear_search_history') }}" onsubmit="return confirm('Delete all of your search history?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="danger-button" type="submit">Clear all history</button>
+      </form>
+      {% for entry in entries %}
+        <article class="history-row">
+          <div>
+            <h3>{{ entry.query }}</h3>
+            <p>{{ entry.created_at.strftime('%Y-%m-%d %H:%M UTC') }} · {{ entry.radius_km }} km · {{ entry.location_source|replace('_', ' ') }}{% if entry.area %} · {{ entry.area }}{% endif %}</p>
+            <p>{{ entry.matching_pharmacies }} matching pharmacies at the time</p>
+          </div>
+          <div class="history-actions">
+            <a href="{{ url_for('user_search', query=entry.query) }}">Search again</a>
+            <form method="post" action="{{ url_for('delete_search_history_item', history_id=entry._id) }}" onsubmit="return confirm('Delete this search?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="danger-button" type="submit">Delete</button>
+            </form>
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <p>No saved searches yet.</p>
+    {% endif %}
+  </main>
+</body></html>

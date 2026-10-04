@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Find Medicines | MediFind</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/medifind.css') }}">
+  <script src="{{ url_for('static', filename='js/search.js') }}" defer></script>
+</head>
+<body>
+  {% include '_header.html' %}
+  <main class="page-shell search-page">
+    <div class="search-intro">
+      <p class="page-kicker">Nearby pharmacy inventory</p>
+      <h1>Find medicines near you</h1>
+      <p class="lede">Search local inventory and compare pharmacies by straight-line distance from the location you choose.</p>
+    </div>
+    {% if location_error %}<p class="location-error" role="alert">{{ location_error }}</p>{% endif %}
+    <form id="medicine-search-form" class="search-panel" method="post" action="{{ url_for('search_results') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" id="latitude" name="lat">
+      <input type="hidden" id="longitude" name="lon">
+      <div class="search-grid">
+        <div class="field">
+          <label for="query">Medicine name or brand</label>
+          <div class="search-query-wrap"><span class="search-symbol" aria-hidden="true">⌕</span><input id="query" name="query" value="{{ query or '' }}" placeholder="For example, Dolo 650" autocomplete="off" required></div>
+        </div>
+        <div class="field">
+          <label for="location">Search location</label>
+          <input id="location" name="location" value="{{ location or '' }}" placeholder="City, area, or PIN code" autocomplete="address-level2">
+        </div>
+        <div class="field">
+          <label for="radius-km">Search radius</label>
+          <select id="radius-km" name="radius_km" required>
+            <option value="1">1 km</option><option value="3">3 km</option><option value="5">5 km</option><option value="10" selected>10 km</option><option value="20">20 km</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-actions">
+        <button id="use-location" class="secondary" type="button"><span aria-hidden="true">◎</span> Use My Current Location</button>
+        <button id="search-submit" type="submit"><span aria-hidden="true">⌕</span> Search Medicines</button>
+        <span id="search-loader" class="search-loader" role="status"><span class="loader-dot" aria-hidden="true"></span> Searching pharmacy inventory…</span>
+        <p id="location-status" class="location-status" role="status" aria-live="polite" data-state="idle">Location is requested only when you choose it. You can enter an area instead.</p>
+      </div>
+      <p class="location-disclosure">Browser coordinates are used for this search and are not saved in your history. With permission, they are also sent to OpenStreetMap Nominatim for an optional readable area label. Manual area lookup returns an approximate center. © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>.</p>
+      <details class="image-search"><summary>Search from a medicine photo (text search remains required)</summary><label for="image">Medicine or package image</label><input type="file" id="image" name="image" accept="image/*"></details>
+    </form>
+  </main>
+  <footer class="site-footer">Inventory is supplied by pharmacy owners or clearly identified as demo data. Verify details with the pharmacy before visiting.</footer>
+</body>
+</html>

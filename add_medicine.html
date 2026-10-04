@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Add Medicine - MediFind</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/medifind.css') }}"></head>
+<body>
+  {% include '_header.html' %}
+  <main class="auth-shell"><section class="auth-panel">
+    <p class="page-kicker">Owner-confirmed inventory</p><h1>Add stock</h1>
+    <p>For {{ pharmacy.name }}. Only enter products and quantities you have verified.</p>
+    <form class="auth-form" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Medicine name<input name="name" list="medicine-catalog" placeholder="Select a type or enter another name" required></label>
+      <datalist id="medicine-catalog">{% for item in catalog %}<option value="{{ item.name }}">{% endfor %}</datalist>
+      <label>Brand (optional)<input name="brand" placeholder="Only enter a verified brand"></label>
+      <label>Price (optional)<input name="price" type="number" min="0" step="0.01" placeholder="Price in ₹"></label>
+      <label>Stock quantity<input name="stock" type="number" min="0" step="1" placeholder="Whole number" required></label>
+      <textarea name="notes" placeholder="Notes (optional)"></textarea>
+      <button type="submit">Add Medicine</button>
+    </form>
+    <div class="auth-links"><a href="{{ url_for('owner_dashboard') }}">Back to dashboard</a></div>
+  </section></main>
+</body></html>

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Request unavailable | MediFind</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/medifind.css') }}">
+</head>
+<body>
+  {% include '_header.html' %}
+  <main class="auth-shell"><section class="auth-panel">
+    <p class="page-kicker">Request unavailable</p>
+    <h1>We couldn’t complete that request.</h1>
+    <p>Please try again. If the problem continues, contact the MediFind administrator with the approximate time of the error.</p>
+    <div class="auth-links"><a href="{{ url_for('home') }}">Return to MediFind</a></div>
+  </section></main>
+</body>
+</html>

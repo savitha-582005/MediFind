@@ -1,0 +1,16 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Your Profile - MediFind</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/medifind.css') }}"></head>
+<body>
+  {% include '_header.html' %}
+  <main class="page-narrow">
+    <p class="page-kicker">Personal details</p><h1>Your profile</h1>
+    {% if user %}
+      <p><strong>Name:</strong> {{ user.name }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      {% if user.created_at %}<p><strong>Member since:</strong> {{ user.created_at.strftime('%Y-%m-%d') }}</p>{% endif %}
+    {% else %}
+      <p>Profile unavailable.</p>
+    {% endif %}
+  </main>
+</body></html>

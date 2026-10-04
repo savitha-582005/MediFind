@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ results|length }} nearby results for {{ query }} | MediFind</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/medifind.css') }}">
+</head>
+<body>
+  {% include '_header.html' %}
+  <main class="page-wide">
+    <div class="results-heading">
+      <div>
+        <p class="page-kicker">Nearby pharmacy inventory</p>
+        <h1>Results for “{{ query }}”</h1>
+        <p>Search center: <strong>{{ location_label }}</strong>{% if location_approximate %} · approximate area center{% endif %} · within <strong>{{ radius_km }} km</strong></p>
+      </div>
+      <a class="button-link secondary small" href="{{ url_for('user_search', query=query) }}">Change search</a>
+    </div>
+    <div class="result-toolbar">
+      <span class="result-count">{{ results|length }} {{ 'pharmacy' if results|length == 1 else 'pharmacies' }} in this radius</span>
+      <div class="view-toggle" role="group" aria-label="Results view">
+        <button type="button" id="list-view-button" aria-pressed="true">List</button>
+        <button type="button" id="map-view-button" aria-pressed="false" {% if not google_maps_api_key %}disabled title="Map key not configured"{% endif %}>Map</button>
+      </div>
+    </div>
+    <div id="maps-status" class="map-status" role="status">{% if google_maps_api_key %}Loading interactive map…{% else %}Interactive map needs a restricted Google Maps browser key. Your pharmacy results and directions work without it.{% endif %}</div>
+    <div id="results-layout" class="results-layout" data-view="list">
+      <section id="pharmacy-results" class="results-column" aria-label="Nearby pharmacies">
+        {% if results %}
+          {% for r in results %}
+            <article class="pharmacy-card" id="pharmacy-{{ loop.index0 }}" data-map-index="{{ loop.index0 }}" tabindex="0" aria-label="{{ r.pharmacy_name }}, {{ r.distance_km }} kilometres away">
+              <div class="card-topline">
+                <div><p class="page-kicker">{% if loop.index == 1 %}Nearest result{% else %}Pharmacy {{ loop.index }}{% endif %}</p><h2 class="pharmacy-name">{{ r.pharmacy_name }}</h2></div>
+                <span class="distance-value">{{ r.distance_km }} km</span>
+              </div>
+              <span class="status-label {% if not r.is_demo %}confirmed{% endif %}">{% if r.is_demo %}Demo listing · not participating{% else %}{{ r.verification_status|replace('_', ' ') }}{% endif %}</span>
+              <p class="pharmacy-address">{{ r.pharmacy_address }}</p>
+              {% if r.pharmacy_phone %}<p class="muted">Verified public phone: {{ r.pharmacy_phone }}</p>{% endif %}
+              {% for offer in r.offers %}
+                <div class="offer-row">
+                  <h4>{{ offer.medicine_name }}{% if offer.brand %} <span class="muted">· {{ offer.brand }}</span>{% endif %}</h4>
+                  <p>Price: {% if offer.price is not none %}₹{{ offer.price }}{% else %}not listed{% endif %} <span aria-hidden="true">·</span> Stock: {{ offer.stock }}</p>
+                  <span class="status-label {% if offer.inventory_status == 'owner_confirmed' %}confirmed{% endif %}">{{ offer.availability_label }}</span>
+                  {% if offer.last_updated_at %}<p class="offer-meta">Stock updated {{ offer.last_updated_at.strftime('%d %b %Y, %H:%M UTC') }}</p>{% endif %}
+                </div>
+              {% endfor %}
+              <p class="offer-meta">Distance is a straight-line estimate, not driving distance.{% if r.location_accuracy == 'address-geocoded-approximate' %} Pharmacy pin is approximate; confirm before visiting.{% endif %}</p>
+              <div class="card-actions">
+                {% if google_maps_api_key %}<button class="secondary small" type="button" data-focus-marker>View on map</button>{% else %}<button class="secondary small" type="button" disabled title="Configure the restricted Google Maps key to view this marker">Map unavailable</button>{% endif %}
+                <a class="button-link small" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/dir/?api=1&origin={{ user_lat }},{{ user_lon }}&destination={{ r.pharmacy_latitude }},{{ r.pharmacy_longitude }}&travelmode=driving">Get directions <span aria-hidden="true">↗</span></a>
+              </div>
+            </article>
+          {% endfor %}
+        {% elif inventory_empty %}
+          <div class="empty-state"><h2>No inventory records yet</h2><p>Ask a pharmacy owner to add stock, or use the optional demo seed for a clearly labeled classroom example.</p></div>
+        {% elif outside_radius_count %}
+          <div class="empty-state"><h2>No nearby pharmacies found</h2><p>{{ outside_radius_count }} matching in-stock pharmacy record(s) are beyond {{ radius_km }} km. Increase the radius or choose another location.</p>
+            <div class="radius-actions">{% for expanded_radius in [1, 3, 5, 10, 20] if expanded_radius > radius_km %}<form method="post" action="{{ url_for('search_results') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="query" value="{{ query }}"><input type="hidden" name="lat" value="{{ user_lat }}"><input type="hidden" name="lon" value="{{ user_lon }}"><input type="hidden" name="location_label" value="{{ location_label }}"><input type="hidden" name="location_approximate" value="{{ 'true' if location_approximate else 'false' }}"><input type="hidden" name="radius_km" value="{{ expanded_radius }}"><button class="secondary small" type="submit">Search {{ expanded_radius }} km</button></form>{% endfor %}</div>
+          </div>
+        {% elif missing_pharmacy_location %}
+          <div class="empty-state"><h2>Pharmacy location needs review</h2><p>{{ missing_pharmacy_location }} matching record(s) have no valid linked pharmacy coordinates. Ask the owner to correct the pharmacy pin.</p></div>
+        {% elif unverified_inventory_count %}
+          <div class="empty-state"><h2>Stock is not confirmed</h2><p>{{ unverified_inventory_count }} matching stock record(s) have not been confirmed by an authorized owner and are not shown as available.</p></div>
+        {% elif matched_count %}
+          <div class="empty-state"><h2>No confirmed stock found</h2><p>Matching records exist, but none have positive owner-confirmed stock at an approved pharmacy with valid coordinates.</p></div>
+        {% else %}
+          <div class="empty-state"><h2>No matching inventory found</h2><p>No pharmacy inventory matches “{{ query }}” right now. Try a shorter medicine name or another location.</p></div>
+        {% endif %}
+      </section>
+      <aside class="results-map-wrap" id="map-column">
+        <div id="results-map" hidden aria-label="Map showing your location and matching pharmacies"></div>
+      </aside>
+    </div>
+  </main>
+  <script>
+    window.mediFindMapConfig = {
+      apiKey: {{ google_maps_api_key|tojson }},
+      origin: { lat: {{ user_lat|tojson }}, lng: {{ user_lon|tojson }} },
+      pharmacies: {{ map_data|tojson }}
+    };
+  </script>
+  <script src="{{ url_for('static', filename='js/maps.js') }}" defer></script>
+  <footer class="site-footer">MediFind inventory can change. Contact the pharmacy to confirm price and stock before visiting.</footer>
+</body>
+</html>

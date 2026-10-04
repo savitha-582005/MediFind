@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Add Pharmacy - MediFind</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/medifind.css') }}"></head>
+<body>
+  {% include '_header.html' %}
+  <main class="auth-shell"><section class="auth-panel">
+    <p class="page-kicker">Owner workspace</p><h1>Pharmacy details</h1>
+    <p>Your listing remains private until its details and owner participation are manually verified.</p>
+    {% if location_error %}<p class="location-error" role="alert">{{ location_error }}</p>{% endif %}
+    <form class="auth-form" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Pharmacy name<input name="name" placeholder="Pharmacy name" value="{{ form_data.get('name', '') if form_data else '' }}" required></label>
+      <label>Full address<input name="address" placeholder="Address, city, area, or PIN code" value="{{ form_data.get('address', '') if form_data else '' }}" required></label>
+      <label>Public pharmacy phone (optional)<input name="public_phone" type="tel" placeholder="Phone, only if publicly listed" value="{{ form_data.get('public_phone', '') if form_data else '' }}"></label>
+      <label>Latitude (optional if address can be located)<input name="latitude" type="number" step="any" placeholder="Verified latitude" value="{{ form_data.get('latitude', '') if form_data else '' }}"></label>
+      <label>Longitude (optional if address can be located)<input name="longitude" type="number" step="any" placeholder="Verified longitude" value="{{ form_data.get('longitude', '') if form_data else '' }}"></label>
+      <p class="muted">Enter verified coordinates, or leave both blank to estimate coordinates from the address. Geocoded locations are approximate and must be checked.</p>
+      <label>Service radius in km<input name="distance_managed_km" type="number" min="1" max="100" step="1" value="5"></label>
+      <button type="submit">Add Pharmacy</button>
+    </form>
+    <div class="auth-links"><a href="{{ url_for('owner_dashboard') }}">Back to dashboard</a></div>
+  </section></main>
+</body></html>
